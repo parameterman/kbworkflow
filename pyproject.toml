@@ -1,0 +1,31 @@
+[tool.poetry]
+name = "config2llmworkflow"
+version = "0.1.0"
+description = ""
+authors = ["Jing-yilin <yilin.jing.ai@outlook.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+generalagent = "^0.3.23"
+requests = ">=2.31.0"
+tinydb = ">=4.8.0"
+openai = ">=1.3.3"
+jinja2 = ">=3.1.2"
+numpy = ">=1.24.4"
+tiktoken = ">=0.5.1"
+llama-index =">=0.10.44"
+python-dotenv = "^1.0.1"
+pydantic = "^2.8.2"
+streamlit = "^1.37.1"
+pyyaml = "^6.0.1"
+
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority="primary"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

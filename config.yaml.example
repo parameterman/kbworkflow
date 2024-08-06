@@ -1,0 +1,155 @@
+workflow:
+  model: "gpt-4o-2024-05-13"
+  token_limit: 128000
+  api_key: ""
+  base_url: ""
+  base_workspace: "agent_workspace"
+  clean_memory: true
+  input_vars:
+    - name: "patient_info"
+      type: "str"
+      description: "患者信息"
+  agents:
+    - name: "agent_1"
+      role: |
+        我需要你扮演一位专业的牙科正畸专家，你的任务是根据用户提供的信息，提取上下颌拥挤。你只需要回答上下颌拥挤。
+        返回示例:
+          上颌拥挤度：1.5 mm
+          下颌拥挤度：3.3 mm
+      prompt: "{patient_info}"
+      priority: 1
+      workspace: "agent_1"
+      continue_run: false
+      output_vars:
+        - name: "result_1"
+          type: "str"
+          description: "上下颌拥挤"
+    - name: "agent_2"
+      role: |
+        我需要你扮演一位专业的牙科正畸专家，你的任务是根据用户提供的信息，提取前牙垂直向，矢状向切牙目标位改变所需（或所能提供的）的间隙 （上下颌）
+        返回示例:
+        总间隙需求计算
+        上切牙 (U1)
+        需要间隙：2mm + 8mm = 10mm
+        产生间隙：3.84mm
+        总间隙需求：10mm - 3.84mm = 6.16mm
+        下切牙 (L1)
+        需要间隙：2.8mm + 2.8mm = 5.6mm
+        产生间隙：0.08mm
+        总间隙需求：5.6mm - 0.08mm = 5.52mm
+      prompt: "{patient_info}"
+      priority: 1
+      workspace: "agent_2"
+      continue_run: false
+      output_vars:
+        - name: "result_2"
+          type: "str"
+          description: ""
+    - name: "agent_3"
+      role: |
+        我需要你扮演一位专业的牙科正畸专家，你的任务是根据用户提供的信息，提取牙弓横向即是否为上下牙弓狭窄需要扩弓，以及扩弓所致的间隙改变。一般以下颌为基准，上颌牙弓比下颌牙弓大2mm，牙弓部分上颌下颌分别计算间隙需求量
+
+        返回示例:
+        根据上面的计算，假设D1和D2的数值为32mm和36mm，则下颌无需额外扩弓。如果考虑上颌第一磨牙的转矩差异，这可能带来0.96mm的扩弓量。
+
+        间隙的产生
+        下颌压低量和间隙需求：
+
+        下切牙压低2.8mm：
+        根据用户提供的计算原则，下切牙压低1mm需要0.5mm间隙，因此压低2.8mm需要间隙 = 2.8mm × 0.5mm/mm = 1.4mm
+        上颌压低量和间隙需求：
+
+        上切牙压低2mm：
+        根据用户提供的计算原则，上切牙压低1mm需要0.5mm间隙，因此压低2mm需要间隙 = 2mm × 0.5mm/mm = 1mm
+        综合以上分析：
+
+        下颌：假设D1和D2的差值没有扩弓需求，需提供1.4mm间隙。
+        上颌：由于上颌转矩差异可能带来0.96mm扩弓量，还需提供1mm间隙，总共需要2mm - 0.96mm = 1.04mm。
+      prompt: "{patient_info}"
+      priority: 1
+      workspace: "agent_3"
+      continue_run: false
+      output_vars:
+        - name: "result_3"
+          type: "str"
+          description: ""
+    - name: "agent_4"
+      role: |
+        我需要你扮演一位专业的牙科正畸专家，你的任务是根据用户提供的信息，提取整平spee曲线所需要的间隙（spee只需要考虑下颌）。
+
+        返回示例:
+        根据周俞的Spee曲线深度信息计算整平Spee曲线所需的间隙。患者的左右Spee曲线深度分别为3.75mm和3.5mm。
+
+        使用公式：
+        Spee曲整平所需间隙 = (左侧深度 + 右侧深度) / 2 + 0.5 mm
+
+        我们来计算一下：
+
+        1. 计算平均深度：
+        平均深度 = (3.75 mm + 3.5 mm) / 2 = 3.625 mm
+
+        2. 加上0.5mm：
+        Spee曲整平所需间隙 = 3.625 mm + 0.5 mm = 4.125 mm
+
+        因此，整平Spee曲线所需的间隙为4.125mm。
+      prompt: "{patient_info}"
+      priority: 1
+      workspace: "agent_4"
+      continue_run: false
+      output_vars:
+        - name: "result_4"
+          type: "str"
+          description: ""
+    - name: "agent_5"
+      role: |
+        我需要你扮演一位专业的牙科正畸专家，你的任务是根据用户提供的信息，提取解决bolton比不调所需要的间隙（bolton比是上下颌牙齿宽度对比，故只需要考虑下颌需要多少间隙或上颌需要多少间隙能让bolton比正常。
+
+        返回示例:
+        周俞的Bolton指数存在不调，具体表现为前牙比偏大，全牙比偏小。
+        需要调整上颌前牙宽度减小2.1 mm，下颌全牙宽度减小1.2 mm。
+      prompt: "{patient_info}"
+      priority: 1
+      workspace: "agent_5"
+      continue_run: false
+      output_vars:
+        - name: "result_5"
+          type: "str"
+          description: ""
+    - name: "final_agent"
+      role: |
+        我需要你扮演一位牙科正畸专家，您需要做的是根据前几位智能体的患者信息结论分别计算上颌和下颌间隙需求量：第一位智能体提供拥挤度（间隙量）（上颌下颌都要计算），第二位智能体提供前牙垂直向，矢状向切牙目标位改变所需（或所能提供的）的间隙
+      prompt: |
+        智能体1结论: {result_1}
+        智能体2结论: {result_2}
+        智能体3结论: {result_3}
+        智能体4结论: {result_4}
+        智能体5结论: {result_5}
+
+        返回示例:
+          上颌总间隙需求量：
+          拥挤度：2 mm
+          前牙垂直向和矢状向切牙目标位改变所需间隙：6.16 mm
+          牙弓横向扩弓和扭转所产生的间隙量：6.4 mm
+          Bolton指数调整所需间隙：2.1 mm
+          总间隙需求量 = 2 + 6.16 - 6.4 + 2.1 = 3.86 mm
+
+          下颌总间隙需求量：
+          拥挤度：5.5 mm
+          前牙垂直向和矢状向切牙目标位改变所需间隙：5.52 mm
+          牙弓横向扩弓和扭转所产生的间隙量：8 mm
+          整平Spee曲线所需间隙：4.125 mm
+          Bolton指数调整所需间隙：1.2 mm
+          总间隙需求量 = 5.5 + 5.52 - 8 + 4.125 + 1.2 = 8.345 mm
+
+          总结
+          上颌总间隙需求量：3.86 mm
+          下颌总间隙需求量：8.345 mm
+      priority: 2
+      workspace: "final_agent"
+      continue_run: true
+      output_vars:
+        - name: "final_result"
+          type: "str"
+          description: "最终建议"
+
+  output: "{final_result}"
