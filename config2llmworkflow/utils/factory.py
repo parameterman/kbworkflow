@@ -2,7 +2,7 @@ from config2llmworkflow.configs.app.base import BaseAppConfig
 from config2llmworkflow.configs.workflows.base import BaseWorkflowConfig
 from config2llmworkflow.configs.agents.base import BaseAgentProxyConfig
 from config2llmworkflow.workflows.base import Workflow
-from config2llmworkflow.agents.base import AgentProxy
+from config2llmworkflow.agents.base import BaseAgentProxy
 
 
 class AgentProxyFactory:
@@ -11,11 +11,11 @@ class AgentProxyFactory:
         pass
 
     def create_agent_proxy(self, config: BaseAgentProxyConfig):
-        return AgentProxy(config)
+        return BaseAgentProxy(config)
 
     @staticmethod
     def from_config(config: dict):
-        return AgentProxy(BaseAgentProxyConfig(**config))
+        return BaseAgentProxy(BaseAgentProxyConfig(**config))
 
 
 class WorkflowFactory:

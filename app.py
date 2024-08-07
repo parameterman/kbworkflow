@@ -27,10 +27,12 @@ def load_config(file_path):
 
 
 def run_app(config):
-    if "app" not in st.session_state:
-        st.session_state.app = AppFactory().from_config(config["app"])
+    # if "app" not in st.session_state:
+    #     st.session_state.app = AppFactory().from_config(config["app"])
 
-    st.session_state.app.run()
+    # st.session_state.app.run()
+
+    AppFactory().from_config(config["app"]).run()
 
 
 def main():

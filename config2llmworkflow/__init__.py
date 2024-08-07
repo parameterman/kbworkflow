@@ -1,1 +1,1 @@
-from config2llmworkflow.main import App # noqa
+from config2llmworkflow.main import App  # noqa

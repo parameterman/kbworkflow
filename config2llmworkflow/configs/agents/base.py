@@ -19,6 +19,7 @@ class BaseAgentProxyConfig(BaseModel):
     frequency_penalty: float = Field(2, title="Frequency penalty")
     reflect_times: int = Field(0, title="Reflect times")
     continue_run: bool = Field(True, title="Continue run")
+    disable_python_run: bool = Field(False, title="Disable python run")
 
 
 class BaseVariableConfig(BaseModel):

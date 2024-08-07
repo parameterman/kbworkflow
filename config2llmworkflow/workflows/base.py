@@ -4,7 +4,12 @@ import concurrent.futures
 import os
 
 from config2llmworkflow.configs.workflows.base import BaseWorkflowConfig
-from config2llmworkflow.agents.base import AgentProxy
+from config2llmworkflow.agents.base import (
+    GenralAgentProxy,
+    BaseAgentProxy,
+    TogetherAgentProxy,
+    OpenaiAgentProxy,
+)
 
 import logging
 
@@ -12,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 # 定义一个全局函数以供多线程使用
-def run_agent(agent: AgentProxy, variables: Dict[str, Any]) -> Dict[str, Any]:
+def run_agent(agent: GenralAgentProxy, variables: Dict[str, Any]) -> Dict[str, Any]:
     logger.debug(f"Running agent: {agent.config.name}")
     logger.debug(f"variables: {variables}")
     return agent(variables)
@@ -27,7 +32,7 @@ class BaseWorkflow(ABC):
         self.agents = self._init_agents()
 
     @abstractmethod
-    def _init_agents(self) -> List[AgentProxy]:
+    def _init_agents(self) -> List[BaseAgentProxy]:
         pass
 
     @abstractmethod
@@ -40,8 +45,21 @@ class Workflow(BaseWorkflow):
     def __init__(self, config: BaseWorkflowConfig = None):
         super().__init__(config)
 
-    def _init_agents(self) -> List[AgentProxy]:
-        agents: List[AgentProxy] = []
+    def _init_agents(self) -> List[BaseAgentProxy]:
+        framework_cls_map = {
+            "general": GenralAgentProxy,
+            "together": TogetherAgentProxy,
+            "openai": OpenaiAgentProxy,
+        }
+
+        framework = self.config.model_framework
+
+        # get the class of the framework
+        framework_cls = framework_cls_map.get(framework, None)
+        if framework_cls is None:
+            raise ValueError(f"Invalid framework: {framework}")
+
+        agents: List[BaseAgentProxy] = []
         for agent_config in self.config.agents:
             print(f"Initializing agent: {agent_config.name}")
             agent_config.model = self.config.model
@@ -53,7 +71,7 @@ class Workflow(BaseWorkflow):
                 self.config.base_workspace, agent_config.workspace
             )
 
-            agent = AgentProxy(config=agent_config)
+            agent = framework_cls(agent_config)
 
             agents.append(agent)
 

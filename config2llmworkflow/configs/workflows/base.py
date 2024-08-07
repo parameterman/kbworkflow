@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from config2llmworkflow.configs.agents.base import (
     BaseAgentProxyConfig,
-    BaseVariableConfig, # noqa
+    BaseVariableConfig,  # noqa
     InputVariableConfig,
 )
 
@@ -12,6 +12,7 @@ from config2llmworkflow.configs.agents.base import (
 class BaseWorkflowConfig(BaseModel):
     name: Optional[str] = Field(None, title="Workflow name")
     description: Optional[str] = Field(None, title="Workflow description")
+    model_framework: str = Field("deepseek", title="Model framework")
     model: str = Field("deepseek-chat", title="Model name")
     token_limit: int = Field(8096, title="Token limit")
     api_key: str = Field(..., title="API key")
