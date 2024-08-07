@@ -1,14 +1,20 @@
 from typing import List, Dict, Any
 from abc import ABC, abstractmethod
-import multiprocessing
+import concurrent.futures
 import os
 
 from config2llmworkflow.configs.workflows.base import BaseWorkflowConfig
 from config2llmworkflow.agents.base import AgentProxy
 
+import logging
 
-# 定义一个全局函数以供多进程使用
+logger = logging.getLogger(__name__)
+
+
+# 定义一个全局函数以供多线程使用
 def run_agent(agent: AgentProxy, variables: Dict[str, Any]) -> Dict[str, Any]:
+    logger.debug(f"Running agent: {agent.config.name}")
+    logger.debug(f"variables: {variables}")
     return agent(variables)
 
 
@@ -21,7 +27,7 @@ class BaseWorkflow(ABC):
         self.agents = self._init_agents()
 
     @abstractmethod
-    def _init_agents(self):
+    def _init_agents(self) -> List[AgentProxy]:
         pass
 
     @abstractmethod
@@ -34,8 +40,8 @@ class Workflow(BaseWorkflow):
     def __init__(self, config: BaseWorkflowConfig = None):
         super().__init__(config)
 
-    def _init_agents(self):
-        agents: Dict[int, List[AgentProxy]] = {}
+    def _init_agents(self) -> List[AgentProxy]:
+        agents: List[AgentProxy] = []
         for agent_config in self.config.agents:
             print(f"Initializing agent: {agent_config.name}")
             agent_config.model = self.config.model
@@ -49,10 +55,8 @@ class Workflow(BaseWorkflow):
 
             agent = AgentProxy(config=agent_config)
 
-            if agent_config.priority not in agents:
-                agents[agent_config.priority] = []
+            agents.append(agent)
 
-            agents[agent_config.priority].append(agent)
             print(f"Agent {agent_config.name} initialized")
 
         return agents
@@ -66,20 +70,32 @@ class Workflow(BaseWorkflow):
         # 合并输入变量和已有变量
         self.variables.update(input_vars)
 
+        # 对智能体进行优先级排序
+        agent_priority_dict = {}
+        for agent in self.agents:
+            if agent.config.priority not in agent_priority_dict:
+                agent_priority_dict[agent.config.priority] = []
+            agent_priority_dict[agent.config.priority].append(agent)
+
         # 获取所有优先级，从 1 到 n 排序
-        priorities = sorted(self.agents.keys())
-        print(f"Priorities: {priorities}")
+        priorities = sorted(agent_priority_dict.keys())
+        logger.debug(f"Priorities: {priorities}")
 
         # 逐个优先级运行智能体, 必须按照优先级顺序运行
         for priority in priorities:
-            print(f"Running agents at priority {priority}")
-            agents = self.agents[priority]
+            logger.info(f"Running agents at priority {priority}")
+            agents = agent_priority_dict[priority]
 
-            # 多进程并行运行智能体
-            with multiprocessing.Pool() as pool:
-                results = pool.starmap(
-                    run_agent, [(agent, self.variables) for agent in agents]
-                )
+            # 多线程并行运行智能体
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                futures = [
+                    executor.submit(run_agent, agent, self.variables)
+                    for agent in agents
+                ]
+                results = [
+                    future.result()
+                    for future in concurrent.futures.as_completed(futures)
+                ]
 
             # 更新变量
             for result in results:
@@ -88,3 +104,9 @@ class Workflow(BaseWorkflow):
         # 返回 output 变量
         output = self.config.output.format(**self.variables)
         return output
+
+    def to_dict(self):
+        return {
+            "config": self.config.model_dump(),
+            "agents": [agent.to_dict() for agent in self.agents],
+        }

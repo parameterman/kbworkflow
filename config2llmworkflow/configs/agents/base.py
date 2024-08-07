@@ -30,3 +30,6 @@ class InputVariableConfig(BaseVariableConfig):
     options: Optional[List[str | int | float]] = Field(None, title="Variable options")
     min: Optional[int | float] = Field(None, title="Variable min")
     max: Optional[int | float] = Field(None, title="Variable max")
+    default: Optional[str | int | float | List[str | int | float]] = Field(
+        None, title="Variable default"
+    )

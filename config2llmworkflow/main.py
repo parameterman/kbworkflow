@@ -6,7 +6,6 @@ from config2llmworkflow.configs.agents.base import (
 from config2llmworkflow.app.base import BaseApp
 import streamlit as st
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -24,7 +23,7 @@ class App(BaseApp):
 
             if input_var_component == "text_area" and input_var_type == "str":
                 exec(
-                    f"{input_var_name} = st.text_area(label=input_var.label, height=300, placeholder=input_var.placeholder)"
+                    f"{input_var_name} = st.text_area(label=input_var.label, value=input_var.default, height=300, placeholder=input_var.placeholder)"
                 )
             elif input_var_component == "selectbox" and input_var_type in [
                 "str",
@@ -32,7 +31,7 @@ class App(BaseApp):
                 "float",
             ]:
                 exec(
-                    f"{input_var_name} = st.selectbox(label=input_var.label, options=input_var.options)"
+                    f"{input_var_name} = st.selectbox(label=input_var.label, options=input_var.options, index=input_var.default)"
                 )
             elif input_var_component == "multiselect" and input_var_type in [
                 "list[str]",
@@ -40,7 +39,7 @@ class App(BaseApp):
                 "list[float]",
             ]:
                 exec(
-                    f"{input_var_name} = st.multiselect(label=input_var.label, options=input_var.options)"
+                    f"{input_var_name} = st.multiselect(label=input_var.label, options=input_var.options, default=input_var.default)"
                 )
             elif input_var_component == "text_input" and input_var_type in [
                 "str",
@@ -48,18 +47,18 @@ class App(BaseApp):
                 "float",
             ]:
                 exec(
-                    f"{input_var_name} = st.text_input(label=input_var.label, placeholder=input_var.placeholder)"
+                    f"{input_var_name} = st.text_input(label=input_var.label,value=input_var.default,placeholder=input_var.placeholder)"
                 )
             elif input_var_component == "number_input" and input_var_type in [
                 "int",
                 "float",
             ]:
                 exec(
-                    f"{input_var_name} = st.number_input(label=input_var.label, placeholder=input_var.placeholder)"
+                    f"{input_var_name} = st.number_input(label=input_var.label, value=input_var.default,placeholder=input_var.placeholder)"
                 )
             elif input_var_component == "slider" and input_var_type in ["int", "float"]:
                 exec(
-                    f"{input_var_name} = st.slider(label=input_var.label, min_value=input_var.min, max_value=input_var.max)"
+                    f"{input_var_name} = st.slider(label=input_var.label, min_value=input_var.min, max_value=input_var.max, value=input_var.default)"
                 )
             else:
                 raise ValueError(
@@ -69,32 +68,83 @@ class App(BaseApp):
         # 返回生成的输入变量
         return locals()
 
+    def valid_input_vars(self, input_vars: dict) -> bool:
+        # 验证输入变量
+        if not all(input_vars.values()):
+            for var_name, var_value in input_vars.items():
+                if not var_value:
+                    # 根据var_name找到var_label
+                    var_label = next(
+                        var.label
+                        for var in self.config.workflow.input_vars
+                        if var.name == var_name
+                    )
+                    st.error(f"请填写 :{var_label}")
+            return False
+
+        return True  # 证明所有的输入变量都已经填写
+
+    def show_sidebar(self):
+        # 在侧边栏显示每一个 AgentProxy 的输出
+        st.sidebar.title("Agent 输出")
+        st.sidebar.json(
+            [
+                {
+                    "priority": agent_proxy.config.priority,
+                    "role": agent_proxy.full_role,
+                    "prompt": agent_proxy.full_prompt,
+                    "answer": agent_proxy.answer,
+                }
+                for agent_proxy in self.workflow.agents
+            ]
+        )
+
+        # for agent_proxy in self.workflow.agents:
+        #     logger.info(f"=" * 40)
+        #     logger.info(f"Show agent dict: {agent_proxy.to_dict()}")
+        #     if not agent_proxy.answer:
+        #         continue
+        #     logger.info(f"Displaying agent output: {agent_proxy.config.name}")
+        #     st.sidebar.markdown(f"**{agent_proxy.config.name}**")
+        #     # # priority
+        #     st.sidebar.write(f"**Priority**: {agent_proxy.config.priority}")
+        #     # full role
+        #     st.sidebar.write(f"**Role**: \n{agent_proxy.full_role}")
+        #     # full prompt
+        #     st.sidebar.write(f"**Prompt**: \n{agent_proxy.full_prompt}")
+        #     # answer
+        #     st.sidebar.write(f"**Answer**: \n{agent_proxy.answer}")
+
+        #     # 把上面的内容按照json格式显示
+
+        #     st.sidebar.json(
+        #         {
+        #             "priority": agent_proxy.config.priority,
+        #             "role": agent_proxy.full_role,
+        #             "prompt": agent_proxy.full_prompt,
+        #             "answer": agent_proxy.answer,
+        #         }
+        #     )
+
+        #     # 分割
+        #     st.sidebar.markdown("---")
+
+    def show_footer(self):
+        # 显示页脚
+        st.markdown("---")
+        st.markdown(self.footer)
+
     def run(self) -> None:
-
-        # st.set_page_config(page_title=self.config.name, layout="wide")
-
         st.title(self.config.name)
 
         input_vars = self.create_input_container()
 
         if st.button("运行工作流"):
-
-            if not all(input_vars.values()):
-                # 显示没有填写的输入变量
-                for var_name, var_value in input_vars.items():
-                    if not var_value:
-                        # 根据var_name找到var_label
-                        var_label = next(
-                            var.label
-                            for var in self.config.workflow.input_vars
-                            if var.name == var_name
-                        )
-                        st.error(f"请填写 :{var_label}")
-            else:
+            if self.valid_input_vars(input_vars):
                 with st.spinner("运行中..."):
                     # 运行工作流
                     result = self.workflow.run(input_vars=input_vars)
-
+                    self.show_sidebar()
                 # 显示结果
                 if result:
                     st.markdown("---")
@@ -102,8 +152,5 @@ class App(BaseApp):
                     st.write(result)
                 else:
                     st.error("运行工作流失败")
-
         # 添加页脚
-        # 添加页脚
-        st.markdown("---")
-        st.markdown(self.footer)
+        self.show_footer()

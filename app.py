@@ -2,6 +2,13 @@ import streamlit as st
 from config2llmworkflow.utils.factory import AppFactory
 import yaml
 import os
+import logging
+from rich.logging import RichHandler
+
+
+logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler()])
+
+logger = logging.getLogger(__name__)
 
 
 def save_uploaded_file(uploaded_file):
