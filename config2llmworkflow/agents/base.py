@@ -1,7 +1,6 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 from abc import ABC, abstractmethod
 from GeneralAgent import Agent
-from GeneralAgent import skills
 import sys
 import re
 from config2llmworkflow.configs.agents.base import BaseAgentProxyConfig
@@ -9,8 +8,6 @@ from config2llmworkflow.configs.agents.base import BaseAgentProxyConfig
 import logging
 import subprocess
 import sys
-import os
-import io
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +17,7 @@ class BaseAgentProxy(ABC):
     answer: Dict[str, Any] = {}
     full_role: str = ""
     full_prompt: str = ""
+    messages: List[Dict[str, str]] = []
 
     def __init__(self, config: BaseAgentProxyConfig):
         self.config = config
@@ -224,6 +222,8 @@ class OpenaiAgentProxy(BaseAgentProxy):
 
                 tmp = response.choices[0].message.content
                 interpreter = _PythonInterpreter(tmp)
+
+        self.messages = messages
 
         output_vars = tmp
 

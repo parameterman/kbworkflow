@@ -91,8 +91,9 @@ class App(BaseApp):
             [
                 {
                     "priority": agent_proxy.config.priority,
-                    "role": agent_proxy.full_role,
-                    "prompt": agent_proxy.full_prompt,
+                    # "role": agent_proxy.full_role,
+                    # "prompt": agent_proxy.full_prompt,
+                    "messages": agent_proxy.messages,
                     "answer": agent_proxy.answer,
                 }
                 for agent_proxy in self.workflow.agents
