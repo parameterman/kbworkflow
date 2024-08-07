@@ -46,6 +46,8 @@ class AgentProxy(BaseAgentProxy):
             token_limit=self.config.token_limit,
             api_key=self.config.api_key,
             base_url=self.config.base_url,
+            frequency_penalty=self.config.frequency_penalty,
+            temperature = self.config.temperature,
             workspace=self.config.workspace,
             continue_run=self.config.continue_run,
         )

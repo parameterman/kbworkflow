@@ -10,10 +10,14 @@ class BaseAgentProxyConfig(BaseModel):
     workspace: str = Field(..., title="Agent workspace")
     clean_memory: bool = Field(True, title="Clean memory")
     output_vars: List[Dict[str, str]] = Field(..., title="Output variables")
+    # model parameters
     model: str = Field("deepseek-chat", title="Model name")
     token_limit: int = Field(8096, title="Token limit")
     api_key: str = Field("", title="API key")
     base_url: str = Field("https://api.deepseek.com/v1", title="Base URL")
+    temperature: float = Field(0.0, title="Temperature")
+    frequency_penalty: float = Field(2, title="Frequency penalty")
+    reflect_times: int = Field(0, title="Reflect times")
     continue_run: bool = Field(True, title="Continue run")
 
 
