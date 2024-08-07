@@ -203,11 +203,11 @@ class OpenaiAgentProxy(BaseAgentProxy):
             interpreter = _PythonInterpreter(tmp)
             while interpreter.include_python_code():
                 interpreter.run_python_code()
-                new_prompt = f"计算结果是：{interpreter.result}"
+                new_prompt = f"我调用Python的运行结果是：{interpreter.result}"
                 messages.extend(
                     [
                         {"role": "assistant", "content": new_prompt},
-                        {"role": "user", "content": "请你根据代码运行结果继续回答"},
+                        {"role": "user", "content": "请你结合python计算结果继续给出回答"},
                     ]
                 )
 

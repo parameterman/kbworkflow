@@ -90,6 +90,7 @@ class App(BaseApp):
         st.sidebar.json(
             [
                 {
+                    "name": agent_proxy.config.name,
                     "priority": agent_proxy.config.priority,
                     # "role": agent_proxy.full_role,
                     # "prompt": agent_proxy.full_prompt,
@@ -99,36 +100,6 @@ class App(BaseApp):
                 for agent_proxy in self.workflow.agents
             ]
         )
-
-        # for agent_proxy in self.workflow.agents:
-        #     logger.info(f"=" * 40)
-        #     logger.info(f"Show agent dict: {agent_proxy.to_dict()}")
-        #     if not agent_proxy.answer:
-        #         continue
-        #     logger.info(f"Displaying agent output: {agent_proxy.config.name}")
-        #     st.sidebar.markdown(f"**{agent_proxy.config.name}**")
-        #     # # priority
-        #     st.sidebar.write(f"**Priority**: {agent_proxy.config.priority}")
-        #     # full role
-        #     st.sidebar.write(f"**Role**: \n{agent_proxy.full_role}")
-        #     # full prompt
-        #     st.sidebar.write(f"**Prompt**: \n{agent_proxy.full_prompt}")
-        #     # answer
-        #     st.sidebar.write(f"**Answer**: \n{agent_proxy.answer}")
-
-        #     # 把上面的内容按照json格式显示
-
-        #     st.sidebar.json(
-        #         {
-        #             "priority": agent_proxy.config.priority,
-        #             "role": agent_proxy.full_role,
-        #             "prompt": agent_proxy.full_prompt,
-        #             "answer": agent_proxy.answer,
-        #         }
-        #     )
-
-        #     # 分割
-        #     st.sidebar.markdown("---")
 
     def show_footer(self):
         # 显示页脚
