@@ -1,8 +1,6 @@
 import logging
 from typing import List
-from config2llmworkflow.configs.agents.base import (
-    InputVariableConfig,
-)
+from config2llmworkflow.configs.nodes.base import InputVariableConfig
 from config2llmworkflow.app.base import BaseApp
 import streamlit as st
 
@@ -65,8 +63,11 @@ class App(BaseApp):
                     f"Unsupported input variable component: {input_var_component}"
                 )
 
-        # 返回生成的输入变量
-        return locals()
+        local_vars = locals()
+        # 删除其中的 "self" 和 "input_vars"
+        del local_vars["self"]
+        del local_vars["input_vars"]
+        return local_vars
 
     def valid_input_vars(self, input_vars: dict) -> bool:
         # 验证输入变量
@@ -87,19 +88,7 @@ class App(BaseApp):
     def show_sidebar(self):
         # 在侧边栏显示每一个 AgentProxy 的输出
         st.sidebar.title("Agent 输出")
-        st.sidebar.json(
-            [
-                {
-                    "name": agent_proxy.config.name,
-                    "priority": agent_proxy.config.priority,
-                    # "role": agent_proxy.full_role,
-                    # "prompt": agent_proxy.full_prompt,
-                    "messages": agent_proxy.messages,
-                    "answer": agent_proxy.answer,
-                }
-                for agent_proxy in self.workflow.agents
-            ]
-        )
+        st.sidebar.json(self.workflow.logs)
 
     def show_footer(self):
         # 显示页脚
@@ -115,13 +104,15 @@ class App(BaseApp):
             if self.valid_input_vars(input_vars):
                 with st.spinner("运行中..."):
                     # 运行工作流
-                    result = self.workflow.run(input_vars=input_vars)
-                    self.show_sidebar()
+                    all_out_vars = self.workflow.run(input_vars=input_vars)
+                    # 格式化
+                    output = self.output.format(**all_out_vars)
+                    # self.show_sidebar()
                 # 显示结果
-                if result:
+                if output:
                     st.markdown("---")
                     st.title("结果")
-                    st.write(result)
+                    st.write(output)
                 else:
                     st.error("运行工作流失败")
         # 添加页脚

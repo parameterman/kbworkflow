@@ -9,12 +9,13 @@ class BaseApp(ABC):
         self.config = config
         self.name = self.config.name
         self.description = self.config.description
+        self.output = self.config.output
         self.footer = self.config.footer
 
         if self.config is None:
             raise ValueError("App configuration is required")
 
-        self.workflow = WorkflowFactory().create_workflow(self.config.workflow)
+        self.workflow = WorkflowFactory.create(config = self.config.workflow.to_dict())
 
     @abstractmethod
     def create_input_container(self):

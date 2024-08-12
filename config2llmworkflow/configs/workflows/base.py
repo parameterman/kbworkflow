@@ -1,24 +1,27 @@
-from pydantic import BaseModel, Field
+# config2llmworkflow/configs/workflows/base.py
+
+
+from pydantic import Field
 from typing import List, Optional
 
-
+from config2llmworkflow.configs.nodes.base import BaseNodeConfig
 from config2llmworkflow.configs.agents.base import (
     BaseAgentProxyConfig,
-    BaseVariableConfig,  # noqa
-    InputVariableConfig,
+    GlobalAgentConfig,
 )
 
 
-class BaseWorkflowConfig(BaseModel):
-    name: Optional[str] = Field(None, title="Workflow name")
-    description: Optional[str] = Field(None, title="Workflow description")
-    model_framework: str = Field("deepseek", title="Model framework")
-    model: str = Field("deepseek-chat", title="Model name")
-    token_limit: int = Field(8096, title="Token limit")
-    api_key: str = Field(..., title="API key")
-    base_url: str = Field("https://api.deepseek.com/v1", title="Base URL")
-    base_workspace: str = Field("agent_workspace", title="Base workspace")
-    clean_memory: bool = Field(True, title="Clean memory")
-    input_vars: List[InputVariableConfig] = Field(..., title="Input variables")
-    agents: List[BaseAgentProxyConfig] = Field(..., title="Agents")
-    output: str = Field(..., title="Output")
+class BaseWorkflowConfig(BaseNodeConfig):
+    provider: str = Field(..., title="Provider, including default, loop")
+    nodes: List[BaseNodeConfig] = Field(..., title="Nodes")
+    global_agent: Optional[GlobalAgentConfig] = Field(None, title="Global agent")
+
+
+class BaseLoopWorkflowConfig(BaseWorkflowConfig):
+    """
+    Loop 是用来循环执行的节点，直到满足用户的判断条件才可以离开
+    """
+
+    end_condition: str = Field(..., title="End condition expression in python")
+    max_loops: int = Field(3, title="Max loops")
+    watchdog_agent: BaseAgentProxyConfig = Field(..., title="Agent")

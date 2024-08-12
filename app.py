@@ -3,10 +3,24 @@ from config2llmworkflow.utils.factory import AppFactory
 import yaml
 import os
 import logging
+from datetime import datetime
 from rich.logging import RichHandler
 
 
-logging.basicConfig(level=logging.INFO, format="%(message)s", handlers=[RichHandler()])
+def setup_logging():
+    log_dir = "logs"
+    os.makedirs(log_dir, exist_ok=True)
+    log_file = os.path.join(
+        log_dir, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
+    )
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[RichHandler(), logging.FileHandler(log_file)],
+    )
+
+
+setup_logging()
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +41,19 @@ def load_config(file_path):
 
 
 def run_app(config):
-    # if "app" not in st.session_state:
-    #     st.session_state.app = AppFactory().from_config(config["app"])
-
-    # st.session_state.app.run()
-
-    AppFactory().from_config(config["app"]).run()
+    AppFactory.create(config=config["app"]).run()
 
 
 def main():
     st.title("Wisup Configuration Runner")
 
-    uploaded_file = st.file_uploader("Upload your config file", type="yaml")
+    uploaded_file = st.file_uploader("请上传配置文件", type="yaml")
 
     if uploaded_file is not None:
         file_path = save_uploaded_file(uploaded_file)
         if file_path:
             config = load_config(file_path)
-            st.write("Config file loaded successfully.")
+            st.write("配置文件加载成功")
 
             run_app(config)
 
