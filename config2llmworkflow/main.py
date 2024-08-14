@@ -107,7 +107,7 @@ class App(BaseApp):
                     all_out_vars = self.workflow.run(input_vars=input_vars)
                     # 格式化
                     output = self.output.format(**all_out_vars)
-                    # self.show_sidebar()
+                    self.show_sidebar()
                 # 显示结果
                 if output:
                     st.markdown("---")

@@ -67,7 +67,10 @@ class OpenaiAgentProxy(BaseAgentProxy):
 {self.config.output_vars}
 """
 
+
         tmp = self._query(messages)
+        # log
+        self.node_log["messages"] = messages
 
         if not self.config.disable_python_run:
             interpreter = PythonInterpreter(tmp)
@@ -85,10 +88,9 @@ class OpenaiAgentProxy(BaseAgentProxy):
                 )
 
                 tmp = self._query(messages)
+                self.node_log["messages"] = messages
 
                 interpreter = PythonInterpreter(tmp)
-
-        self.node_log["messages"] = messages
 
         output_vars = tmp.strip()
 

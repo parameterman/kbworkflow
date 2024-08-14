@@ -7,10 +7,11 @@ from config2llmworkflow.configs.nodes.base import BaseNodeConfig
 class Node(ABC):
     type = "node"
     # 记录流程
-    node_log = {}
+    
 
     def __init__(self, config: BaseNodeConfig = None):
         self.config = config
+        self.node_log = {}
 
     @abstractmethod
     def run(self, input_vars: Dict[str, Any]) -> Any:

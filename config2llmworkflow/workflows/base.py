@@ -23,6 +23,7 @@ class BaseWorkflow(Node):
     type = NodeType.WORKFLOW
 
     def __init__(self, config: BaseWorkflowConfig = None):
+        super().__init__(config)
         self.config = config
         self.variables = {}
         self.nodes = []
@@ -113,7 +114,14 @@ class BaseWorkflow(Node):
 
     @property
     def logs(self) -> Dict[str, Any]:
-        self.node_log["nodes"] = [node.logs for node in self.nodes]
+        logger.info(f"Current workflow: {self.config.name}")
+        # show sub nodes
+        logger.info(f"Current nodes: {[node.config.name for node in self.nodes]}")
+
+        if self.nodes:
+            self.node_log["nodes"] = [
+                node.logs for node in self.nodes
+            ]
 
         return self.node_log
 

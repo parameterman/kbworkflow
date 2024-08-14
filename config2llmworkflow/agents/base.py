@@ -31,6 +31,7 @@ class BaseAgentProxy(Node):
     messages: List[Dict[str, str]] = []
 
     def __init__(self, config: BaseAgentProxyConfig):
+        super().__init__(config)
         self.config = config
         self._init_client()
 
