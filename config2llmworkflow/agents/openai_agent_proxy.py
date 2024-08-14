@@ -32,6 +32,13 @@ class OpenaiAgentProxy(BaseAgentProxy):
             top_p=0.7,
         )
 
+        messages.append(
+            {
+                "role": "assistant",
+                "content": response.choices[0].message.content,
+            }
+        )
+
         return response.choices[0].message.content
 
     def run(
@@ -66,7 +73,6 @@ class OpenaiAgentProxy(BaseAgentProxy):
 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
 {self.config.output_vars}
 """
-
 
         tmp = self._query(messages)
         # log
