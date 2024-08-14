@@ -28,7 +28,7 @@ class OpenaiAgentProxy(BaseAgentProxy):
             frequency_penalty=self.config.frequency_penalty,
             max_tokens=self.config.token_limit,
             temperature=self.config.temperature,
-            response_format={"type": "json_object"},
+            # response_format={"type": "json_object"},
             top_p=0.7,
         )
 
@@ -62,17 +62,20 @@ class OpenaiAgentProxy(BaseAgentProxy):
             messages[-1][
                 "content"
             ] += """
-如果你认为需要先通过生成python代码进行计算，你可以先输出python代码,格式如下:
+如果你认为需要先通过生成python代码进行计算，那么你可以扮演一个Python计算专家，你可以先输出python代码,格式如下:
 ```python
 # main python code
 ```
+其中的变量名请使用英文，并且符合python变量命名规范。
+python代码的最终终端输出结果将被用于后续的回答。
+在最后一定要用print()输出结果。
 """
-        messages[-1][
-            "content"
-        ] += f"""
-请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
-{self.config.output_vars}
-"""
+#         messages[-1][
+#             "content"
+#         ] += f"""
+# 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
+# {self.config.output_vars}
+# """
 
         tmp = self._query(messages)
         # log
@@ -88,17 +91,17 @@ class OpenaiAgentProxy(BaseAgentProxy):
                         {"role": "assistant", "content": new_prompt},
                         {
                             "role": "user",
-                            "content": "请你结合python计算结果继续给出回答",
+                            "content": "请你结合python计算结果继续给出回答。如果运行结果报错，那么请修复代码。如果运行成功，那么请你最好直接给出答案，不要啰嗦",
                         },
                     ]
                 )
 
-                tmp = self._query(messages)
+                tmp = self._query(messages).strip()
                 self.node_log["messages"] = messages
 
                 interpreter = PythonInterpreter(tmp)
 
-        output_vars = tmp.strip()
+        output_vars = tmp
 
         logger.debug(f"OpenaiAgentProxy {self.config.output_vars=}")
         logger.debug(f"OpenaiAgentProxy {output_vars=}")
