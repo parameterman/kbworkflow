@@ -12,33 +12,6 @@ logger = logging.getLogger(__name__)
 from config2llmworkflow.utils.python_interpreter import PythonInterpreter
 
 
-'''
-import google.generativeai as genai
-import os
-
-genai.configure(api_key="AIzaSyBuqFrm7ePYZllGFRj11Q8NP0Bh_mkGegg")
-
-model = genai.GenerativeModel('gemini-1.5-pro-latest')
-
-response = model.generate_content("Write a story about an AI and magic")
-print(response.text)
-
-
-# chat 
-
-model = genai.GenerativeModel("gemini-1.5-flash")
-chat = model.start_chat(
-    history=[
-        {"role": "user", "parts": "Hello"},
-        {"role": "model", "parts": "Great to meet you. What would you like to know?"},
-    ]
-)
-response = chat.send_message("I have 2 dogs in my house.")
-print(response.text)
-response = chat.send_message("How many paws are in my house?")
-print(response.text)
-'''
-
 class GeminiAgentProxy(BaseAgentProxy):
 
     def _init_client(self):
