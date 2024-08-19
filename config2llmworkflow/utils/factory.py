@@ -19,7 +19,9 @@ class AgentProxyFactory:
     provider_to_class = {
         "general": "config2llmworkflow.agents.GeneralAgentProxy",
         "openai": "config2llmworkflow.agents.OpenaiAgentProxy",
+        "gemini": "config2llmworkflow.agents.GeminiAgentProxy",
         "together": "config2llmworkflow.agents.TogetherAgentProxy",
+        "litellm": "config2llmworkflow.agents.LitellmAgentProxy",
     }
 
     provider_to_config = {

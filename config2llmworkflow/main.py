@@ -3,6 +3,7 @@ from typing import List
 from config2llmworkflow.configs.nodes.base import InputVariableConfig
 from config2llmworkflow.app.base import BaseApp
 import streamlit as st
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -88,12 +89,17 @@ class App(BaseApp):
     def show_sidebar(self):
         # 在侧边栏显示每一个 AgentProxy 的输出
         st.sidebar.title("Agent 输出")
+        # 显示一个下载json文件的按钮
+        st.sidebar.download_button(
+            label="下载日志",
+            data=json.dumps(self.workflow.logs, ensure_ascii=False, indent=4),
+        )
         st.sidebar.json(self.workflow.logs)
 
     def show_footer(self):
         # 显示页脚
         st.markdown("---")
-        st.markdown(self.footer)
+        st.markdown(self.config.footer)
 
     def run(self) -> None:
         st.title(self.config.name)
@@ -106,12 +112,14 @@ class App(BaseApp):
                     # 运行工作流
                     all_out_vars = self.workflow.run(input_vars=input_vars)
                     # 格式化
-                    output = self.output.format(**all_out_vars)
-                    self.show_sidebar()
+                    output = self.config.output.format(**all_out_vars)
+                    if self.config.show_sidebar:
+                        self.show_sidebar()
                 # 显示结果
                 if output:
                     st.markdown("---")
                     st.title("结果")
+                    logger.info(f"最终结果: \n{output}")
                     st.write(output)
                 else:
                     st.error("运行工作流失败")

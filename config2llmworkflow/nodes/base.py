@@ -11,7 +11,11 @@ class Node(ABC):
 
     def __init__(self, config: BaseNodeConfig = None):
         self.config = config
-        self.node_log = {}
+        self.node_log = {
+            "name": self.config.name,
+            "priority": self.config.priority,
+            "description": self.config.description,
+        }
 
     @abstractmethod
     def run(self, input_vars: Dict[str, Any]) -> Any:
