@@ -14,6 +14,7 @@ class BaseAppConfig(BaseModel):
     name: Optional[str] = Field(None, title="App name")
     description: Optional[str] = Field(None, title="App description")
     footer: Optional[str] = Field(None, title="App footer")
+    show_sidebar: Optional[bool] = Field(False, title="Show sidebar")
     output: Optional[str] = Field(None, title="App output")
     workflow: BaseWorkflowConfig = Field(..., title="Workflow")
 
@@ -22,6 +23,7 @@ class BaseAppConfig(BaseModel):
             "name": self.name,
             "description": self.description,
             "footer": self.footer,
+            "show_sidebar": self.show_sidebar,
             "output": self.output,
             "workflow": self.workflow.to_dict(),
         }

@@ -1,7 +1,7 @@
 # config2llmworkflow/configs/agents/base.py
 
 from pydantic import Field, BaseModel
-from typing import Optional
+from typing import Optional, List
 
 from config2llmworkflow.configs.nodes.base import BaseNodeConfig
 
@@ -20,6 +20,7 @@ class BaseAgentConfig(BaseNodeConfig):
     reflect_times: int = Field(0, title="Reflect times")
     continue_run: bool = Field(True, title="Continue run")
     disable_python_run: bool = Field(False, title="Disable python run")
+    tools: List[str] = Field([], title="Tools")
 
 
 class GlobalAgentConfig(BaseModel):

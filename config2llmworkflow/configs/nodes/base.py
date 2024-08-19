@@ -45,7 +45,7 @@ class BaseNodeConfig(BaseModel):
     output_vars: Optional[List[OutputVariableConfig]] = Field(
         [], description="输出变量"
     )
-    priority: int = Field(1, description="优先级")
+    priority: float = Field(1.0, description="优先级")
 
     class Config:
         extra = "allow"
