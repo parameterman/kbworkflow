@@ -20,6 +20,8 @@ pydantic = "^2.8.2"
 streamlit = "^1.37.1"
 pyyaml = "^6.0.1"
 together = "^1.2.5"
+google-generativeai = "^0.7.2"
+litellm = "^1.43.17"
 
 
 [[tool.poetry.source]]
@@ -30,6 +32,7 @@ priority="primary"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
+ruff = "^0.6.1"
 
 [build-system]
 requires = ["poetry-core"]
