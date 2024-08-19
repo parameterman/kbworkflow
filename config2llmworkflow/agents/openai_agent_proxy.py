@@ -1,8 +1,13 @@
 import re
 import json
 import time
+from functools import lru_cache
 from typing import Dict, Any, Optional
 from config2llmworkflow.agents.base import BaseAgentProxy
+from config2llmworkflow.agents.agent_tools import (
+    tool_name_to_func_map,
+    tool_name_to_schema_map,
+)
 
 import logging
 
@@ -22,6 +27,11 @@ class OpenaiAgentProxy(BaseAgentProxy):
         )
 
     def _query(self, messages):
+        from openai import NotGiven
+
+        # 从 tool_name_to_schema_map 中获取工具的 schema
+        tools = [tool_name_to_schema_map[tool_name] for tool_name in self.config.tools]
+
         response = self.client.chat.completions.create(
             model=self.config.model,
             messages=messages,
@@ -30,16 +40,28 @@ class OpenaiAgentProxy(BaseAgentProxy):
             temperature=self.config.temperature,
             # response_format={"type": "json_object"},
             top_p=0.7,
+            tools=tools if tools else NotGiven(),
         )
 
-        messages.append(
-            {
-                "role": "assistant",
-                "content": response.choices[0].message.content,
-            }
-        )
+        if tools:
+            try:
+                tool_call = response.choices[0].message.tool_calls[0]
+            except Exception as e:
+                logger.error(f"Error parsing tool call: {e}")
+                tool_call = None
+        else:
+            tool_call = None
 
-        return response.choices[0].message.content
+        if response.choices[0].message.content:
+
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": response.choices[0].message.content,
+                }
+            )
+
+        return response.choices[0].message.content, tool_call
 
     def run(
         self, input_vars: Dict[str, Any], watchdog_feedback: Optional[str] = None
@@ -70,14 +92,59 @@ class OpenaiAgentProxy(BaseAgentProxy):
 python代码的最终终端输出结果将被用于后续的回答。
 在最后一定要用print()输出结果。
 """
-#         messages[-1][
-#             "content"
-#         ] += f"""
-# 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
-# {self.config.output_vars}
-# """
+        #         messages[-1][
+        #             "content"
+        #         ] += f"""
+        # 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
+        # {self.config.output_vars}
+        # """
 
-        tmp = self._query(messages)
+        tmp, tool_call = self._query(messages)
+
+        if tool_call:
+            name = tool_call.function.name
+            arguments = tool_call.function.arguments
+
+            # log 当前 agent 选择的函数和参数
+            if "tool_call" not in self.node_log:
+                self.node_log["tool_call"] = []
+            self.node_log["tool_call"].append(
+                {
+                    "name": name,
+                    "arguments": arguments,
+                }
+            )
+
+            logger.info(
+                f"[{self.config.name}] 调用了工具 {name}，参数是 {arguments}, 参数类型是 {type(arguments)}"
+            )
+
+            if name in tool_name_to_func_map:
+                func = tool_name_to_func_map[name]
+                # try json
+                try:
+                    arguments = json.loads(arguments)
+                except:
+                    logger.warning(
+                        f"[{self.config.name}] 参数 {arguments} 不是json格式，无法解析"
+                    )
+                    pass
+                tmp = func(**arguments)
+                logger.info(f"[{self.config.name}] 调用工具 {name} 的结果是 {tmp}")
+                messages.extend(
+                    [
+                        {
+                            "role": "assistant",
+                            "content": f"我调用了工具{name}, 参数是{arguments}, 结果是{tmp}",
+                        },
+                    ]
+                )
+
+                # logger.info(f"messages: {messages}")
+
+                # # send messages to chatgpt
+                # tmp, tool_call = self._query(messages)
+
         # log
         self.node_log["messages"] = messages
 
@@ -96,29 +163,31 @@ python代码的最终终端输出结果将被用于后续的回答。
                     ]
                 )
 
-                tmp = self._query(messages).strip()
+                tmp, tool_call = self._query(messages)
                 self.node_log["messages"] = messages
 
                 interpreter = PythonInterpreter(tmp)
 
-        output_vars = tmp
+        output_vars = messages[-1]["content"]
 
-        logger.debug(f"OpenaiAgentProxy {self.config.output_vars=}")
-        logger.debug(f"OpenaiAgentProxy {output_vars=}")
+        logger.debug(
+            f"[{self.config.name}] OpenaiAgentProxy {self.config.output_vars=}"
+        )
+        logger.debug(f"[{self.config.name}] OpenaiAgentProxy {output_vars=}")
 
-        try:
-            # 获取 ```json ```里的内容
-            json_pattern = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
+        # try:
+        #     # 获取 ```json ```里的内容
+        #     json_pattern = re.compile(r"```json\n(.*?)\n```", re.DOTALL)
 
-            match = json_pattern.search(output_vars)
-            if match:
-                output_vars = match.group(1)
-                output_vars = json.loads(output_vars)
-            # 如果没有match，则直接使用 json.loads
-            else:
-                output_vars = json.loads(output_vars)
-        except Exception as e:
-            logger.error(f"Error parsing json: {e}")
+        #     match = json_pattern.search(output_vars)
+        #     if match:
+        #         output_vars = match.group(1)
+        #         output_vars = json.loads(output_vars)
+        #     # 如果没有match，则直接使用 json.loads
+        #     else:
+        #         output_vars = json.loads(output_vars)
+        # except Exception as e:
+        #     logger.warning(f"Error parsing json: {e}")
 
         if isinstance(output_vars, str) and len(self.config.output_vars) == 1:
             output_vars = {self.config.output_vars[0].name: output_vars}
@@ -135,7 +204,14 @@ python代码的最终终端输出结果将被用于后续的回答。
 
         self.answer = output_vars
 
-        logger.debug(f"type of output_vars: {type(output_vars)}")
-        logger.debug(f"output_vars: {output_vars}")
+        logger.info(f"Running exec")
+        exec(f"{self.config.name}_messages = self.node_log['messages']")
+        # 添加到 output_vars
+        exec(
+            f"output_vars['{self.config.name}_messages'] = {self.config.name}_messages"
+        )
+
+        logger.debug(f"[{self.config.name}] type of output_vars: {type(output_vars)}")
+        logger.info(f"[{self.config.name}] output_vars: {output_vars}")
 
         return output_vars
