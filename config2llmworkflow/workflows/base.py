@@ -4,8 +4,6 @@ import concurrent.futures
 from config2llmworkflow.configs.workflows.base import BaseWorkflowConfig
 from config2llmworkflow.nodes.base import Node
 from config2llmworkflow.configs.nodes.base import NodeType
-from config2llmworkflow.agents.base import BaseAgentProxyConfig
-from config2llmworkflow.configs.workflows.base import BaseLoopWorkflowConfig
 from loguru import logger
 
 
@@ -24,7 +22,9 @@ class BaseWorkflow(Node):
         self.variables = {}
         self.nodes = []
 
-        logger.debug("🏗️[Workflow]BaseWorkflow -> {}: {}", type(self.config), self.config)
+        logger.debug(
+            "🏗️[Workflow]BaseWorkflow -> {}: {}", type(self.config), self.config
+        )
 
         self._init_nodes()
 
@@ -35,22 +35,30 @@ class BaseWorkflow(Node):
 
         # 根据类型来创建节点
         for node_config in self.config.nodes:
-            logger.info("🔨[Workflow]Creating node: {} \n config: {}", node_config.name, node_config)
+            logger.info(
+                "🔨[Workflow]Creating node: {} \n config: {}",
+                node_config.name,
+                node_config,
+            )
             node = NodeFactory.create(node_config.to_dict())
             self.nodes.append(node)
 
-        logger.info("✅[Workflow]Created nodes for {}: {}", self.config.name, [node.config.name for node in self.nodes])
+        logger.info(
+            "✅[Workflow]Created nodes for {}: {}",
+            self.config.name,
+            [node.config.name for node in self.nodes],
+        )
         return self.nodes
 
     @property
     def logs(self) -> Dict[str, Any]:
         logger.debug("📊[Workflow]Current workflow: {}", self.config.name)
-        logger.debug("📊[Workflow]Current nodes: {}", [node.config.name for node in self.nodes])
+        logger.debug(
+            "📊[Workflow]Current nodes: {}", [node.config.name for node in self.nodes]
+        )
 
         if self.nodes:
-            self.node_log["nodes"] = [
-                node.logs for node in self.nodes
-            ]
+            self.node_log["nodes"] = [node.logs for node in self.nodes]
 
         return self.node_log
 
@@ -108,7 +116,9 @@ class DefaultWorkflow(BaseWorkflow):
                 for var in node.config.output_vars:
                     output_vars[var.name] = self.variables[var.name]
 
-        logger.info("✅[Workflow]Finished running default workflow: {}", self.config.name)
+        logger.info(
+            "✅[Workflow]Finished running default workflow: {}", self.config.name
+        )
         return output_vars
 
     def to_dict(self):

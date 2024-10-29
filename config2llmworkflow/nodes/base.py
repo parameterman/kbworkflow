@@ -7,7 +7,6 @@ from config2llmworkflow.configs.nodes.base import BaseNodeConfig
 class Node(ABC):
     type = "node"
     # 记录流程
-    
 
     def __init__(self, config: BaseNodeConfig = None):
         self.config = config

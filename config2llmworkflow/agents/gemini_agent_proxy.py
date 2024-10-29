@@ -22,9 +22,8 @@ class GeminiAgentProxy(BaseAgentProxy):
 
         self.client = genai.GenerativeModel(
             model_name=self.config.model,
-            tools='code_execution' if not self.config.disable_python_run else None
+            tools="code_execution" if not self.config.disable_python_run else None,
         )
-            
 
     def _query(self, messages: List[Dict[str, str]]) -> str:
 
@@ -34,9 +33,7 @@ class GeminiAgentProxy(BaseAgentProxy):
         print(f"{new_query=}")
         print(f"{chat_his=}")
 
-        chat = self.client.start_chat(
-            history=chat_his
-        )
+        chat = self.client.start_chat(history=chat_his)
 
         response = chat.send_message(new_query)
 
@@ -51,7 +48,6 @@ class GeminiAgentProxy(BaseAgentProxy):
 
         return response.text
 
-
     def run(
         self, input_vars: Dict[str, Any], watchdog_feedback: Optional[str] = None
     ) -> Dict[str, Any]:
@@ -65,7 +61,7 @@ class GeminiAgentProxy(BaseAgentProxy):
         self._init_client()
 
         messages = [
-            {"role": "model", "content":  self.full_role + "\n" + self.full_prompt},
+            {"role": "model", "content": self.full_role + "\n" + self.full_prompt},
         ]
 
         if not self.config.disable_python_run:
@@ -74,12 +70,12 @@ class GeminiAgentProxy(BaseAgentProxy):
             ] += """
 如果你觉得有必要计算，那么你可以通过生成python代码来计算
 """
-#         messages[-1][
-#             "content"
-#         ] += f"""
-# 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
-# {self.config.output_vars}
-# """
+        #         messages[-1][
+        #             "content"
+        #         ] += f"""
+        # 请你生成确定的正式结果时，生成json格式，使用```json\n```包裹，产生的变量信息如下；
+        # {self.config.output_vars}
+        # """
 
         tmp = self._query(messages)
         # log
@@ -142,8 +138,9 @@ class GeminiAgentProxy(BaseAgentProxy):
         logger.info(f"Running exec")
         exec(f"{self.config.name}_messages = self.node_log['messages']")
         # 添加到 output_vars
-        exec(f"output_vars['{self.config.name}_messages'] = {self.config.name}_messages")
-
+        exec(
+            f"output_vars['{self.config.name}_messages'] = {self.config.name}_messages"
+        )
 
         logger.debug(f"[{self.config.name}] type of output_vars: {type(output_vars)}")
         logger.info(f"[{self.config.name}] output_vars: {output_vars}")

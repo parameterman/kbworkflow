@@ -8,6 +8,7 @@ import argparse
 
 logger.add(os.path.join("logs", f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"))
 
+
 def save_uploaded_file(uploaded_file):
     try:
         with open(os.path.join("/tmp", uploaded_file.name), "wb") as f:
@@ -17,12 +18,15 @@ def save_uploaded_file(uploaded_file):
         st.error(f"Failed to save uploaded file: {e}")
         return None
 
+
 def load_config(file_path):
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
 
+
 def run_app(config):
     AppFactory.create(config=config["app"]).run()
+
 
 def main(config_path=None):
     # st.title("Wisup Configuration Runner")
@@ -48,10 +52,13 @@ def main(config_path=None):
         else:
             st.write("Please upload a config file.")
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Streamlit app with optional config file argument.")
+    parser = argparse.ArgumentParser(
+        description="Streamlit app with optional config file argument."
+    )
     parser.add_argument("--config", type=str, help="Path to the configuration file.")
-    
+
     args = parser.parse_args()
-    
+
     main(config_path=args.config)

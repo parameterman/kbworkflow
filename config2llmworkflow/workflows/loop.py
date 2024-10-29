@@ -42,7 +42,9 @@ class LoopWorkflow(DefaultWorkflow):
         loop_time = 1
 
         while True:
-            logger.info(f"Loop work flow [{self.config.name}] running loop time: {loop_time}")
+            logger.info(
+                f"Loop work flow [{self.config.name}] running loop time: {loop_time}"
+            )
             logger.debug(f"{input_vars=}")
             logger.info(f"Start running nodes")
             logger.info(f"nodes: {self.nodes}")

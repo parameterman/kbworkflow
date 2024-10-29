@@ -160,7 +160,15 @@ calculate_spee_space = {
 
 # agent 6 tool
 def calculate_total_space_requirement(
-    A1: float, A2: float, B1: float, B2: float, C1: float, C2: float, D1: float, D2: float, E2: float
+    A1: float,
+    A2: float,
+    B1: float,
+    B2: float,
+    C1: float,
+    C2: float,
+    D1: float,
+    D2: float,
+    E2: float,
 ) -> dict:
     """
     计算上下颌总间隙需求量。
@@ -189,6 +197,7 @@ def calculate_total_space_requirement(
         "下颌总间隙需求量": f"{lower_total_space} mm",
     }
 
+
 calculate_total_space_requirement_tool = {
     "type": "function",
     "function": {
@@ -199,13 +208,34 @@ calculate_total_space_requirement_tool = {
             "properties": {
                 "A1": {"type": "number", "description": "上颌拥挤度 (mm)"},
                 "A2": {"type": "number", "description": "下颌拥挤度 (mm)"},
-                "B1": {"type": "number", "description": "上颌前牙垂直向和矢状向切牙目标位改变所需或提供的间隙 (mm)"},
-                "B2": {"type": "number", "description": "下颌前牙垂直向和矢状向切牙目标位改变所需或提供的间隙 (mm)"},
-                "C1": {"type": "number", "description": "上颌牙弓横向扩弓和磨牙转矩变化导致的间隙变化 (mm)"},
-                "C2": {"type": "number", "description": "下颌牙弓横向扩弓和磨牙转矩变化导致的间隙变化 (mm)"},
-                "D1": {"type": "number", "description": "上颌Bolton指数调整产生的间隙 (mm)"},
-                "D2": {"type": "number", "description": "下颌Spee曲线整平所需间隙 (mm)"},
-                "E2": {"type": "number", "description": "下颌Bolton指数调整产生的间隙 (mm)"},
+                "B1": {
+                    "type": "number",
+                    "description": "上颌前牙垂直向和矢状向切牙目标位改变所需或提供的间隙 (mm)",
+                },
+                "B2": {
+                    "type": "number",
+                    "description": "下颌前牙垂直向和矢状向切牙目标位改变所需或提供的间隙 (mm)",
+                },
+                "C1": {
+                    "type": "number",
+                    "description": "上颌牙弓横向扩弓和磨牙转矩变化导致的间隙变化 (mm)",
+                },
+                "C2": {
+                    "type": "number",
+                    "description": "下颌牙弓横向扩弓和磨牙转矩变化导致的间隙变化 (mm)",
+                },
+                "D1": {
+                    "type": "number",
+                    "description": "上颌Bolton指数调整产生的间隙 (mm)",
+                },
+                "D2": {
+                    "type": "number",
+                    "description": "下颌Spee曲线整平所需间隙 (mm)",
+                },
+                "E2": {
+                    "type": "number",
+                    "description": "下颌Bolton指数调整产生的间隙 (mm)",
+                },
             },
             "required": ["A1", "A2", "B1", "B2", "C1", "C2", "D1", "D2", "E2"],
             "additionalProperties": False,
