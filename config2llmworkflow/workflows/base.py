@@ -6,16 +6,12 @@ from config2llmworkflow.nodes.base import Node
 from config2llmworkflow.configs.nodes.base import NodeType
 from config2llmworkflow.agents.base import BaseAgentProxyConfig
 from config2llmworkflow.configs.workflows.base import BaseLoopWorkflowConfig
-
-
-import logging
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 def run_node(node: Node, variables: Dict[str, Any]) -> Dict[str, Any]:
-    logger.debug(f"Running node: {node.config.name}")
-    logger.debug(f"variables: {variables}")
+    logger.debug("🔄[Node]Running node: {}", node.config.name)
+    logger.debug("🔄[Node]variables: {}", variables)
     return node(variables)
 
 
@@ -28,95 +24,28 @@ class BaseWorkflow(Node):
         self.variables = {}
         self.nodes = []
 
-        logger.debug(f"BaseWorkflow -> {type(self.config)}: {self.config}")
+        logger.debug("🏗️[Workflow]BaseWorkflow -> {}: {}", type(self.config), self.config)
 
         self._init_nodes()
 
     def _init_nodes(self) -> List[Node]:
-        # 如果当前配置的 global_agent 不是 None，那么需要将 global_agent 覆盖到所有的 agent 中
-        # if (
-        #     "global_agent" in self.config.model_fields
-        #     and self.config.global_agent is not None
-        # ):
-        #     logger.debug(f"self.config.global_agent = {self.config.global_agent}")
-
-        # 用global_agent里的非空字段来替换 每个 self.config.nodes 里的值
-
-        # for field_name, field_value in self.config.global_agent.to_dict().items():
-        #     if field_value:
-        #         for node_config in self.config.nodes:
-        #             # 设置变量
-        #             # logger.debug(
-        #             #     f"Before setting type of node_config: {type(node_config)}"
-        #             # )
-        #             # node_config.__setattr__(field_name, field_value)
-        #             # logger.debug(
-        #             #     f"After setting type of node_config: {type(node_config)}"
-        #             # )
-
-        #             # 如果 node_config 包含 watchdog_agent 字段，则也覆盖 watchdog_agent
-        #             if "watchdog_agent" in node_config.model_fields:
-        #                 logger.debug(
-        #                     f"Before setting: node_config.watchdog_agent = {node_config.watchdog_agent}"
-        #                 )
-
-        #                 old_watchdog_agent_config = node_config.watchdog_agent
-        #                 logger.debug(
-        #                     f"type of old_watchdog_agent_config: {type(old_watchdog_agent_config)}"
-        #                 )
-        #                 old_watchdog_agent_config_dict = (
-        #                     old_watchdog_agent_config.to_dict()
-        #                 )
-        #                 logger.debug(
-        #                     f"type of old_watchdog_agent_config_dict: {type(old_watchdog_agent_config_dict)}"
-        #                 )
-        #                 old_watchdog_agent_config_dict.__setattr__(
-        #                     field_name, field_value
-        #                 )
-
-        #                 if not node_config.watchdog_agent.get(field_name, ""):
-        #                     node_config.watchdog_agent[field_name] = field_value
-
-        #                 logger.debug(
-        #                     f"After setting node_config.watchdog_agent = {node_config.watchdog_agent}"
-        #                 )
-
-        #             if "global_agent" in node_config.to_dict().keys():
-        #                 if node_config.global_agent is None:
-        #                     node_config.global_agent = {}
-
-        #                 logger.debug(
-        #                     f"Before setting: node_config.global_agent = {node_config.global_agent}"
-        #                 )
-        #                 # node_config.global_agent.__setattr__(field_name, field_value)
-
-        #                 if not node_config.global_agent.get(field_name, ""):
-        #                     node_config.global_agent[field_name] = field_value
-
-        #                 logger.debug(
-        #                     f"After setting node_config.global_agent = {node_config.global_agent}"
-        #                 )
-
-        logger.debug(f"self.config.nodes: \n {self.config.nodes}")
+        logger.debug("📋[Workflow]self.config.nodes: \n {}", self.config.nodes)
 
         from config2llmworkflow.utils.factory import NodeFactory
 
         # 根据类型来创建节点
         for node_config in self.config.nodes:
-            logger.info(f"Creating node: {node_config.name}\n config: {node_config}")
+            logger.info("🔨[Workflow]Creating node: {} \n config: {}", node_config.name, node_config)
             node = NodeFactory.create(node_config.to_dict())
             self.nodes.append(node)
 
-        logger.info(
-            f"Created nodes for {self.config.name}: {[node.config.name for node in self.nodes]}"
-        )
+        logger.info("✅[Workflow]Created nodes for {}: {}", self.config.name, [node.config.name for node in self.nodes])
         return self.nodes
 
     @property
     def logs(self) -> Dict[str, Any]:
-        logger.info(f"Current workflow: {self.config.name}")
-        # show sub nodes
-        logger.info(f"Current nodes: {[node.config.name for node in self.nodes]}")
+        logger.debug("📊[Workflow]Current workflow: {}", self.config.name)
+        logger.debug("📊[Workflow]Current nodes: {}", [node.config.name for node in self.nodes])
 
         if self.nodes:
             self.node_log["nodes"] = [
@@ -132,8 +61,8 @@ class DefaultWorkflow(BaseWorkflow):
         super().__init__(config)
 
     def run(self, input_vars: Dict[str, Any]) -> Dict[str, Any]:
-        logger.info(f"Running default workflow: {self.config.name}")
-        logger.info(f"All nodes: {self.nodes}")
+        logger.info("▶️[Workflow]Running default workflow: {}", self.config.name)
+        logger.debug("📋[Workflow]All nodes: {}", self.nodes)
         # 验证输入变量
         for var in self.config.input_vars:
             if var.name not in input_vars:
@@ -148,7 +77,7 @@ class DefaultWorkflow(BaseWorkflow):
             if node.config.priority not in node_priority_dict:
                 node_priority_dict[node.config.priority] = []
             node_priority_dict[node.config.priority].append(node)
-        logger.info(f"node_priority_dict: {node_priority_dict}")
+        logger.info("🔀[Workflow]node_priority_dict: {}", node_priority_dict)
 
         # 获取所有优先级，从 1 到 n 排序
         priorities = sorted(node_priority_dict.keys())
@@ -156,7 +85,7 @@ class DefaultWorkflow(BaseWorkflow):
         # 逐个优先级运行智能体, 必须按照优先级顺序运行
         output_vars = {}
         for priority in priorities:
-            logger.info(f"Running nodes at priority {priority}")
+            logger.info("⚡[Workflow]Running nodes at priority {}", priority)
             nodes = node_priority_dict[priority]
 
             # 多线程并行运行智能体
@@ -179,7 +108,7 @@ class DefaultWorkflow(BaseWorkflow):
                 for var in node.config.output_vars:
                     output_vars[var.name] = self.variables[var.name]
 
-        logger.info(f"Finished running default workflow: {self.config.name}")
+        logger.info("✅[Workflow]Finished running default workflow: {}", self.config.name)
         return output_vars
 
     def to_dict(self):

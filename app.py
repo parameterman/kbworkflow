@@ -2,26 +2,11 @@ import streamlit as st
 from config2llmworkflow.utils.factory import AppFactory
 import yaml
 import os
-import logging
 from datetime import datetime
-from rich.logging import RichHandler
+from loguru import logger
 import argparse
 
-def setup_logging():
-    log_dir = "logs"
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(
-        log_dir, f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"
-    )
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=[RichHandler(), logging.FileHandler(log_file)],
-    )
-
-setup_logging()
-
-logger = logging.getLogger(__name__)
+logger.add(os.path.join("logs", f"{datetime.now().strftime('%Y-%m-%d-%H-%M-%S')}.log"))
 
 def save_uploaded_file(uploaded_file):
     try:

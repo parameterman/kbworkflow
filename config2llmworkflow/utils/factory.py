@@ -1,12 +1,10 @@
-import logging
+from loguru import logger
 import importlib
 from typing import Optional, Dict
 
 from config2llmworkflow.nodes.base import Node
 from config2llmworkflow.agents.base import BaseAgentProxy
 from config2llmworkflow.workflows.base import BaseWorkflow
-
-logger = logging.getLogger(__name__)
 
 
 def load_class(class_type):
@@ -64,7 +62,7 @@ class WorkflowFactory:
         if not provider_name:
             raise ValueError("provider_name not provided")
 
-        logger.debug(f"{provider_name=}")
+        logger.debug("🔧[Workflow]provider_name={}", provider_name)
 
         class_type = cls.provider_to_class.get(provider_name)
         config_type = cls.provider_to_config.get(

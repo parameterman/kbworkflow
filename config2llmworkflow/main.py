@@ -1,11 +1,9 @@
-import logging
 from typing import List
 from config2llmworkflow.configs.nodes.base import InputVariableConfig
 from config2llmworkflow.app.base import BaseApp
 import streamlit as st
 import json
-
-logger = logging.getLogger(__name__)
+from loguru import logger
 
 
 class App(BaseApp):
@@ -15,7 +13,7 @@ class App(BaseApp):
 
         input_vars: List[InputVariableConfig] = self.config.workflow.input_vars
         for input_var in input_vars:
-            logger.info(f"Creating input variable: {input_var.name}")
+            logger.info("🔧[Input]创建输入变量: {}", input_var.name)
             input_var_type = input_var.type
             input_var_name = input_var.name
             input_var_component = input_var.component  # noqa
@@ -119,7 +117,7 @@ class App(BaseApp):
                 if output:
                     st.markdown("---")
                     st.title("结果")
-                    logger.info(f"最终结果: \n{output}")
+                    logger.info("✨[Output]最终结果: \n{}", output)
                     st.write(output)
                 else:
                     st.error("运行工作流失败")

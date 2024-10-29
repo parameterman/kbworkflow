@@ -22,6 +22,7 @@ pyyaml = "^6.0.1"
 together = "^1.2.5"
 google-generativeai = "^0.7.2"
 litellm = "^1.43.17"
+loguru = "^0.7.2"
 
 
 [[tool.poetry.source]]
